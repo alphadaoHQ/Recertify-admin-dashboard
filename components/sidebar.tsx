@@ -1,0 +1,69 @@
+"use client"
+
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { LayoutDashboard, Building2, Award, Zap, Users, FileText, RotateCcw, TrendingUp, Settings } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+const navigation = [
+  { name: "Dashboard", href: "/", icon: LayoutDashboard },
+  { name: "Organizations", href: "/organizations", icon: Building2 },
+  { name: "Certifications", href: "/certifications", icon: Award },
+  { name: "Minting", href: "/minting", icon: Zap },
+  { name: "Users", href: "/users", icon: Users },
+  { name: "Verification Logs", href: "/verification", icon: FileText },
+  { name: "Recertification", href: "/recertification", icon: RotateCcw },
+  { name: "Revenue", href: "/revenue", icon: TrendingUp },
+  { name: "Settings", href: "/settings", icon: Settings },
+]
+
+export function Sidebar({ open }: { open: boolean }) {
+  const pathname = usePathname()
+
+  return (
+    <div
+      className={cn("bg-card border-r border-border transition-all duration-300 flex flex-col", open ? "w-64" : "w-20")}
+    >
+      {/* Logo */}
+      <div className="h-16 flex items-center justify-center border-b border-border">
+        <div className="flex items-center gap-2">
+          <img src="/logo.jpeg" alt="Recertify Logo" className="w-8 h-8 rounded-lg object-cover" />
+          {open && <span className="font-bold text-foreground">Recertify</span>}
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto py-4 px-2">
+        <div className="space-y-2">
+          {navigation.map((item) => {
+            const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))
+            const Icon = item.icon
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                <Icon className="w-5 h-5 flex-shrink-0" />
+                {open && <span className="text-sm font-medium">{item.name}</span>}
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
+
+      {/* Footer */}
+      <div className="border-t border-border p-4">
+        <div className={cn("text-xs text-muted-foreground", !open && "text-center")}>
+          {open ? "Recertify Admin" : "v0.2"}
+        </div>
+      </div>
+    </div>
+  )
+}

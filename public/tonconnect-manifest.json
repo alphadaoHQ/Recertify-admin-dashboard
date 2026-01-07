@@ -1,0 +1,14 @@
+{
+  "name": "Admin Dashboard",
+  "short_name": "AdminDash",
+  "description": "Admin dashboard for minting and managing certificates",
+  "icons": [
+    {
+      "src": "/certificate-template.svg",
+      "sizes": "1200x900",
+      "type": "image/svg+xml"
+    }
+  ],
+  "app_url": "http://localhost:3000",
+  "manifest_version": "1.0"
+}
