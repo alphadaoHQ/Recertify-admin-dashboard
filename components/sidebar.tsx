@@ -27,7 +27,7 @@ export function Sidebar({ open }: { open: boolean }) {
       {/* Logo */}
       <div className="h-16 flex items-center justify-center border-b border-border">
         <div className="flex items-center gap-2">
-          <img src="/logo.jpeg" alt="Recertify Logo" className="w-8 h-8 rounded-lg object-cover" />
+          <img src="/recertify%20logo.png" alt="Recertify Logo" className="w-8 h-8 rounded-lg object-cover" />
           {open && <span className="font-bold text-foreground">Recertify</span>}
         </div>
       </div>

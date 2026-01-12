@@ -14,6 +14,10 @@ export const metadata: Metadata = {
   title: "Recertify - Admin Dashboard",
   description: "Manage certifications, users, and blockchain operations for Recertify",
   generator: "v0.app",
+  icons: {
+    icon: "/recertify%20logo.png",
+    apple: "/recertify%20logo.png",
+  },
 }
 
 export default function RootLayout({
