@@ -14,9 +14,6 @@ const COLLECTION_ADDRESS = 'kQCQmegg2KFHWhf4VhNRhUX-lNBW52jmV0hRU749WUvOZA-O';
 const MINT_INDEX = 0;
 
 
-const NFT_ITEM_URI = 'https://peach-fast-clam-38.mypinata.cloud/ipfs/bafybeiedq3l22745663ebspnmozssslvek4roaw77lhn75eq3wipxqbxze/';
-
-
 
 
 export async function run(provider: NetworkProvider) {
@@ -27,8 +24,6 @@ export async function run(provider: NetworkProvider) {
     const mintMessage: Mint = {
         $$type: 'Mint',
         student: senderAddress,
-        metadata: NFT_ITEM_URI,
-
     };
     
     
