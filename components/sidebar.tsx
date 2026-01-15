@@ -20,15 +20,17 @@ const navigation = [
 export function Sidebar({ open }: { open: boolean }) {
   const pathname = usePathname()
 
-  return (
+return (
     <div
-      className={cn("bg-card border-r border-border transition-all duration-300 flex flex-col", open ? "w-64" : "w-20")}
+      className={cn("glass-dark border-r border-border/50 transition-all duration-300 flex flex-col shadow-xl", open ? "w-64" : "w-20")}
     >
-      {/* Logo */}
-      <div className="h-16 flex items-center justify-center border-b border-border">
+{/* Logo */}
+      <div className="h-16 flex items-center justify-center border-b border-border/50 glass-dark">
         <div className="flex items-center gap-2">
-          <img src="/recertify%20logo.png" alt="Recertify Logo" className="w-8 h-8 rounded-lg object-cover" />
-          {open && <span className="font-bold text-foreground">Recertify</span>}
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg">
+            <img src="/recertify%20logo.png" alt="Recertify Logo" className="w-6 h-6 rounded object-cover" />
+          </div>
+          {open && <span className="font-bold text-gradient">Recertify</span>}
         </div>
       </div>
 
@@ -43,11 +45,11 @@ export function Sidebar({ open }: { open: boolean }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200",
+className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 hover:scale-105",
                   isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    ? "bg-gradient-to-r from-primary to-purple-600 text-primary-foreground shadow-lg"
+                    : "text-muted-foreground hover:bg-white/10 hover:text-foreground hover:shadow-md",
                 )}
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
