@@ -22,10 +22,10 @@ export function Sidebar({ open }: { open: boolean }) {
 
 return (
     <div
-      className={cn("glass-dark border-r border-border/50 transition-all duration-300 flex flex-col shadow-xl", open ? "w-64" : "w-20")}
+      className={cn("backdrop-blur-md bg-black/20 border-r border-border/50 transition-all duration-300 flex flex-col shadow-xl", open ? "w-64" : "w-20")}
     >
 {/* Logo */}
-      <div className="h-16 flex items-center justify-center border-b border-border/50 glass-dark">
+      <div className="h-16 flex items-center justify-center border-b border-border/50 backdrop-blur-md bg-black/20">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg">
             <img src="/recertify%20logo.png" alt="Recertify Logo" className="w-6 h-6 rounded object-cover" />

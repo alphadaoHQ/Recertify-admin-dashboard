@@ -253,15 +253,6 @@
     @apply opacity-80;
   }
   
-  /* Glass morphism utilities */
-  .glass {
-    @apply backdrop-blur-md bg-white/10 border border-white/20;
-  }
-  
-  .glass-dark {
-    @apply backdrop-blur-md bg-black/20 border border-white/10;
-  }
-  
   /* Enhanced card styles with depth */
   .card-elevated {
     @apply shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1;
@@ -269,7 +260,7 @@
   }
   
   .card-glass {
-    @apply glass;
+    @apply backdrop-blur-md bg-white/10 border border-white/20;
     box-shadow: var(--shadow-lg), var(--shadow-purple);
   }
   
@@ -327,7 +318,7 @@
   
   /* Enhanced button styles */
   .btn-glass {
-    @apply glass hover:bg-white/20 transition-all duration-300 hover:scale-105 active:scale-95;
+    @apply backdrop-blur-md bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 active:scale-95;
   }
   
   .btn-gradient {

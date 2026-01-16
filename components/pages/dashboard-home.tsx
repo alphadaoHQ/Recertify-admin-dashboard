@@ -42,7 +42,7 @@ export function DashboardHome() {
           <p className="text-muted-foreground mt-1">Welcome back, manage your certifications and users</p>
         </div>
         <div className="flex gap-3 animate-slide-up">
-          <Button variant="outline" className="btn-glass">Export Report</Button>
+          <Button variant="outline" className="backdrop-blur-md bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 active:scale-95">Export Report</Button>
           <Button className="gap-2 btn-gradient shadow-lg">
             <Plus className="w-4 h-4" />
             Create Certification
@@ -52,7 +52,7 @@ export function DashboardHome() {
 
 {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="card-elevated card-glass group card-stagger-1">
+        <Card className="card-elevated backdrop-blur-md bg-white/10 border border-white/20 group card-stagger-1">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -70,7 +70,7 @@ export function DashboardHome() {
           </CardContent>
         </Card>
 
-        <Card className="card-elevated card-glass group card-stagger-2">
+        <Card className="card-elevated backdrop-blur-md bg-white/10 border border-white/20 group card-stagger-2">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500/20 to-green-600/20 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -85,7 +85,7 @@ export function DashboardHome() {
           </CardContent>
         </Card>
 
-        <Card className="card-elevated card-glass group card-stagger-3">
+        <Card className="card-elevated backdrop-blur-md bg-white/10 border border-white/20 group card-stagger-3">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-500/20 to-orange-600/20 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -100,7 +100,7 @@ export function DashboardHome() {
           </CardContent>
         </Card>
 
-        <Card className="card-elevated card-glass group card-stagger-4">
+        <Card className="card-elevated backdrop-blur-md bg-white/10 border border-white/20 group card-stagger-4">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-600/20 flex items-center justify-center group-hover:scale-110 transition-transform">

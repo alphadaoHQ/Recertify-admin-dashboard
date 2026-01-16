@@ -1,5 +1,6 @@
 import { TonWallet, sendTransaction } from "./wallet"
 import { encodePayloadToBase64 } from "./encoder"
+import { createNFTCollection, COLLECTION_CONFIG } from "./contract"
 
 export async function mintSingleCertificate(
   data: {
@@ -21,8 +22,9 @@ export async function mintSingleCertificate(
       // Step 1: Generate certificate image
       const imageBuffer = await generateCertificateImage(data.studentName, data.dateOfCompletion)
 
-      // Step 2: Upload image to IPFS
-      const imageIpfsHash = await uploadToIPFS(imageBuffer, `${data.studentName}-cert.png`)
+// Step 2: Upload image to IPFS
+      const imageUpload = await uploadToIPFS(imageBuffer, `${data.studentName}-cert.png`)
+      const imageIpfsHash = (imageUpload as any).ipfsHash || imageUpload
 
       // Step 3: Create TEP-64 metadata
       const metadata = {
@@ -36,12 +38,17 @@ export async function mintSingleCertificate(
         ],
       }
 
-      // Step 4: Upload metadata to IPFS
-      metadataIpfsHash = await uploadToIPFS(Buffer.from(JSON.stringify(metadata)), `${data.studentName}-metadata.json`)
+// Step 4: Upload metadata to IPFS
+      const metadataUpload = await uploadToIPFS(Buffer.from(JSON.stringify(metadata)), `${data.studentName}-metadata.json`)
+      metadataIpfsHash = (metadataUpload as any).ipfsHash || metadataUpload
     }
 
-    // Step 5: Send mint transaction to blockchain
-    const contractAddress = process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS || ""
+// Step 5: Send mint transaction to blockchain
+    const contractAddress = process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS
+
+    if (!contractAddress) {
+      throw new Error("Contract address not configured. Please set NEXT_PUBLIC_NFT_CONTRACT_ADDRESS in your environment variables.")
+    }
 
     let txHash: string
     if (wallet) {
@@ -53,8 +60,22 @@ export async function mintSingleCertificate(
         // ignore and fallback to base64 JSON inside sendTransaction
       }
 
-      const res = await sendTransaction(wallet, contractAddress || data.walletAddress, "0", { bodyBoc, payloadObj: payload })
-      txHash = res?.txHash || res?.hash || (typeof res === "string" ? res : `0x${Math.random().toString(16).slice(2)}`)
+console.log("Sending simple mint transaction:", {
+        contractAddress,
+        recipient: walletAddress,
+        metadataUri: `ipfs://${metadataIpfsHash}`,
+        payload
+      })
+
+      // Create collection instance and mint
+      const collection = createNFTCollection(contractAddress, process.env.NEXT_PUBLIC_TON_NETWORK as 'testnet' | 'mainnet')
+      const contractTxHash = await collection.mint(walletAddress, `ipfs://${metadataIpfsHash}`)
+
+      // Send the actual transaction via wallet
+      const res = await sendTransaction(wallet, contractAddress, "0", { bodyBoc, payloadObj: { ...payload } })
+      txHash = res?.txHash || res?.hash || contractTxHash || `0x${Math.random().toString(16).slice(2)}`
+      
+      console.log("Simple mint transaction sent successfully:", { txHash })
     } else {
       // Fallback / server-only behavior
       txHash = await sendMintTransaction(data.walletAddress, `ipfs://${metadataIpfsHash}`)
@@ -191,43 +212,11 @@ async function generateCertificateImage(studentName: string, dateOfCompletion: s
   return Buffer.from(`certificate-image-${studentName}-${dateOfCompletion}`)
 }
 
+// Collection data is now handled by the contract wrapper
+// This function is kept for backward compatibility
 async function getCollectionData(contractAddress: string) {
-  // Attempt to call a public RPC/getter (TonCenter). If not configured or call fails, fall back to a mock.
-  if (!contractAddress) {
-    return { next_item_index: Math.floor(Date.now() / 1000) % 100000 }
-  }
-
-  try {
-    const apiKey = process.env.NEXT_PUBLIC_TONCENTER_API_KEY
-    const url = `https://toncenter.com/api/v2/callGetMethod?address=${contractAddress}&method=get_collection_data${apiKey ? `&api_key=${apiKey}` : ''}`
-    const res = await fetch(url)
-    if (!res.ok) throw new Error('Failed to call getter')
-    const data = await res.json()
-
-    // TonCenter returns a `.result` with a `stack` array; attempt to parse a numeric field
-    // This parsing is heuristic and may need to be adapted to your contract's getter output
-    const stack = data?.result?.stack
-    if (Array.isArray(stack)) {
-      // Search for a numeric-like element
-      for (const item of stack) {
-        if (Array.isArray(item) && item.length >= 2 && item[0] === 'int') {
-          try {
-            const val = parseInt(item[1], 10)
-            if (!Number.isNaN(val)) {
-              return { next_item_index: val }
-            }
-          } catch (e) {
-            // ignore
-          }
-        }
-      }
-    }
-
-    // fallback
-    return { next_item_index: Math.floor(Date.now() / 1000) % 100000 }
-  } catch (e) {
-    return { next_item_index: Math.floor(Date.now() / 1000) % 100000 }
-  }
+  const collection = createNFTCollection(contractAddress, process.env.NEXT_PUBLIC_TON_NETWORK as 'testnet' | 'mainnet')
+  return await collection.getCollectionData()
 }
 
 export async function prepareSingleCertificate(
@@ -247,10 +236,10 @@ export async function prepareSingleCertificate(
     const imageUpload = await uploadToIPFS(imageBuffer, `${data.studentName}-cert.png`)
     const imageIpfsHash = imageUpload.ipfsHash
 
-    // Query contract getter to find next index
-    const contractAddress = options?.contractAddress || process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS || ""
-    const coll = await getCollectionData(contractAddress)
-    const nextIndex = (coll?.next_item_index ?? 0) + 1
+// Query contract getter to find next index
+    const contractAddress = options?.contractAddress || process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS || COLLECTION_CONFIG.address
+    const collection = createNFTCollection(contractAddress, process.env.NEXT_PUBLIC_TON_NETWORK as 'testnet' | 'mainnet')
+    const nextIndex = await collection.getNextItemIndex()
 
     const metadata = {
       name: `${data.program} Certificate #${nextIndex} - ${data.studentName}`,
@@ -285,8 +274,8 @@ export async function prepareSingleCertificate(
 }
 
 async function uploadToIPFS(data: Buffer | Blob, filename: string): Promise<{ ipfsHash: string; gateways: string[]; accessible: boolean }> {
-  const formData = new FormData()
-  const blob = data instanceof Blob ? data : new Blob([data])
+const formData = new FormData()
+  const blob = data instanceof Blob ? data : new Blob([data as any])
   formData.append("file", blob, filename)
 
   // Use Pinata API (in production, use NEXT_PUBLIC_PINATA_JWT env var)
@@ -302,8 +291,8 @@ async function uploadToIPFS(data: Buffer | Blob, filename: string): Promise<{ ip
     throw new Error("Failed to upload to IPFS")
   }
 
-  const respJson = (await response.json()) as { IpfsHash: string }
-  const ipfsHash = respJson?.IpfsHash || respJson?.Hash || ""
+const respJson = (await response.json()) as { IpfsHash: string }
+  const ipfsHash = respJson?.IpfsHash || ""
 
   // Probe several public gateways to determine accessibility
   const gatewaysToCheck = [
@@ -328,6 +317,68 @@ async function uploadToIPFS(data: Buffer | Blob, filename: string): Promise<{ ip
   return { ipfsHash, gateways: workingGateways, accessible: workingGateways.length > 0 }
 }
 
+export async function mintSimpleCertificate(
+  walletAddress: string,
+  wallet?: TonWallet,
+) {
+  try {
+    // Built-in base URL metadata for simple mint
+    const builtInMetadata = {
+      name: "Certificate of Completion",
+      description: "Standard certificate issued through Recertify platform",
+      image: "ipfs://QmBuiltInCertificateImage", // Built-in certificate image
+      attributes: [
+        { trait_type: "Platform", value: "Recertify" },
+        { trait_type: "Type", value: "Standard Certificate" },
+        { trait_type: "Issued Date", value: new Date().toISOString().split('T')[0] },
+      ],
+    }
+
+    // Upload built-in metadata to IPFS
+    const metadataUpload = await uploadToIPFS(
+      Buffer.from(JSON.stringify(builtInMetadata)), 
+      "simple-certificate-metadata.json"
+    )
+    const metadataIpfsHash = metadataUpload
+
+    // Send mint transaction to blockchain
+    const contractAddress = process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS
+
+    if (!contractAddress) {
+      throw new Error("Contract address not configured. Please set NEXT_PUBLIC_NFT_CONTRACT_ADDRESS in your environment variables.")
+    }
+
+    let txHash: string
+    if (wallet) {
+      const payload = { 
+        action: "mint", 
+        recipient: walletAddress, 
+        metadataUri: `ipfs://${metadataIpfsHash}` 
+      }
+      let bodyBoc: string | undefined = undefined
+      try {
+        bodyBoc = await encodePayloadToBase64(payload)
+      } catch (e) {
+        // ignore and fallback to base64 JSON inside sendTransaction
+      }
+
+      const res = await sendTransaction(wallet, contractAddress || walletAddress, "0", { bodyBoc, payloadObj: { ...payload } })
+      txHash = res?.txHash || res?.hash || (typeof res === "string" ? res : `0x${Math.random().toString(16).slice(2)}`)
+    } else {
+      // Fallback / server-only behavior
+      txHash = await sendMintTransaction(walletAddress, `ipfs://${metadataIpfsHash}`)
+    }
+
+    return {
+      success: true,
+      txHash,
+      ipfsHash: (metadataIpfsHash as any).ipfsHash || metadataIpfsHash,
+    }
+  } catch (error) {
+    throw new Error(`Simple minting failed: ${error instanceof Error ? error.message : "Unknown error"}`)
+  }
+}
+
 async function sendMintTransaction(
   recipientAddress: string,
   metadataUri: string,
@@ -338,7 +389,7 @@ async function sendMintTransaction(
 
   if (options?.wallet) {
     const payload = { action: "mint", recipient: recipientAddress, metadataUri }
-    const res = await sendTransaction(options.wallet, contractAddress || recipientAddress, options.amountTon ?? "0", payload)
+    const res = await sendTransaction(options.wallet, contractAddress || recipientAddress, options.amountTon ?? "0", { payloadObj: payload })
     return res?.txHash || res?.hash || (typeof res === "string" ? res : `0x${Math.random().toString(16).slice(2)}`)
   }
 

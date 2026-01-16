@@ -6,7 +6,7 @@ import { WalletButton } from "@/components/ui/wallet-button"
 
 export function TopHeader({ onToggleSidebar }: { onToggleSidebar: () => void }) {
 return (
-    <div className="h-16 border-b border-border/50 glass flex items-center justify-between px-8 shadow-lg">
+    <div className="h-16 border-b border-border/50 backdrop-blur-md bg-white/10 flex items-center justify-between px-8 shadow-lg">
       <div className="flex items-center gap-4">
 <Button variant="ghost" size="icon" onClick={onToggleSidebar} className="text-muted-foreground hover:bg-white/10 transition-all duration-200 hover:scale-110">
           <Menu className="w-5 h-5" />
